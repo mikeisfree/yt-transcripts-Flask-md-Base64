@@ -1,0 +1,5 @@
+bin/**
+/test/**
+/_pycache_/
+Transcripts/*
+venv/

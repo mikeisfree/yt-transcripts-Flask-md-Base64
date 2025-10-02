@@ -1,0 +1,15 @@
+# YouTube Transcript Downloader - Dependencies
+
+# Core dependencies
+youtube-transcript-api>=0.6.0
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+
+# API server
+flask>=3.1.0
+
+# Development and testing (optional)
+# pytest>=7.0.0
+# pytest-cov>=4.0.0
+# black>=22.0.0
+# flake8>=5.0.0

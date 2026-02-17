@@ -15,18 +15,118 @@ import requests
 from bs4 import BeautifulSoup
 
 
+def extract_youtube_initial_data(html_content: str) -> Optional[Dict[str, Any]]:
+    """Wyodrębnij dane ytInitialData z kodu HTML YouTube"""
+    import json
+    
+    # Szukaj ytInitialData w skryptach
+    patterns = [
+        r'var\s+ytInitialData\s*=\s*(\{.+?\});',
+        r'ytInitialData\s*=\s*(\{.+?\});',
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, html_content, re.DOTALL)
+        if match:
+            try:
+                # Znajdź końcowy nawias klamrowy
+                json_str = match.group(1)
+                # Parsuj JSON
+                return json.loads(json_str)
+            except json.JSONDecodeError:
+                continue
+    
+    return None
+
+
+def extract_youtube_player_response(html_content: str) -> Optional[Dict[str, Any]]:
+    """Wyodrębnij dane ytInitialPlayerResponse z kodu HTML YouTube"""
+    import json
+    
+    # Szukaj ytInitialPlayerResponse w skryptach
+    patterns = [
+        r'var\s+ytInitialPlayerResponse\s*=\s*(\{.+?\});',
+        r'ytInitialPlayerResponse\s*=\s*(\{.+?\});',
+        r'"playerResponse"\s*:\s*"(\{.+?\})"',
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, html_content, re.DOTALL)
+        if match:
+            try:
+                json_str = match.group(1)
+                # Jeśli jest escape'owany w stringu
+                if '\\"' in json_str or '\\n' in json_str:
+                    json_str = json_str.encode().decode('unicode_escape')
+                return json.loads(json_str)
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                continue
+    
+    return None
+
+
+def extract_full_description_from_data(yt_data: Dict[str, Any]) -> Optional[str]:
+    """Wyodrębnij pełny opis z danych YouTube"""
+    
+    # Metoda 1: Z ytInitialData - videoSecondaryInfoRenderer.attributedDescription.content
+    # To jest NOWA lokalizacja pełnego opisu w YouTube
+    try:
+        contents = yt_data.get('contents', {})
+        two_column = contents.get('twoColumnWatchNextResults', {})
+        results = two_column.get('results', {})
+        results_contents = results.get('results', {}).get('contents', [])
+        
+        for content in results_contents:
+            secondary_info = content.get('videoSecondaryInfoRenderer', {})
+            
+            # NOWA metoda: attributedDescription.content (pełny opis)
+            attributed_desc = secondary_info.get('attributedDescription', {})
+            if attributed_desc:
+                desc_content = attributed_desc.get('content')
+                if desc_content:
+                    return desc_content
+            
+            # STARA metoda: description.runs (dla kompatybilności)
+            description_container = secondary_info.get('description', {})
+            if description_container:
+                runs = description_container.get('runs', [])
+                if runs:
+                    full_text = ''.join(run.get('text', '') for run in runs)
+                    if full_text:
+                        return full_text
+                
+                simple_text = description_container.get('simpleText')
+                if simple_text:
+                    return simple_text
+    except (KeyError, TypeError, AttributeError):
+        pass
+    
+    # Metoda 2: Z ytInitialPlayerResponse - videoDetails.shortDescription
+    try:
+        video_details = yt_data.get('videoDetails', {})
+        short_desc = video_details.get('shortDescription')
+        if short_desc:
+            return short_desc
+    except (KeyError, TypeError, AttributeError):
+        pass
+    
+    return None
+
+
 def get_video_metadata(video_id: str) -> Dict[str, Any]:
     """Pobierz metadane filmu z YouTube"""
     try:
         url = f"https://www.youtube.com/watch?v={video_id}"
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept-Language': 'en-US,en;q=0.9'
         }
         
         response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()
         
-        soup = BeautifulSoup(response.text, 'html.parser')
+        html_content = response.text
+        soup = BeautifulSoup(html_content, 'html.parser')
         
         # Pobierz tytuł z różnych miejsc
         title = None
@@ -71,11 +171,25 @@ def get_video_metadata(video_id: str) -> Dict[str, Any]:
         if date_meta:
             publish_date = date_meta.get('content')
         
-        # Pobierz opis
+        # Pobierz PEŁNY opis - najpierw z danych JSON YouTube
         description = None
-        desc_meta = soup.find('meta', property='og:description')
-        if desc_meta:
-            description = desc_meta.get('content')
+        
+        # Metoda 1: Z ytInitialData
+        yt_initial_data = extract_youtube_initial_data(html_content)
+        if yt_initial_data:
+            description = extract_full_description_from_data(yt_initial_data)
+        
+        # Metoda 2: Z ytInitialPlayerResponse (fallback)
+        if not description:
+            yt_player_response = extract_youtube_player_response(html_content)
+            if yt_player_response:
+                description = extract_full_description_from_data(yt_player_response)
+        
+        # Metoda 3: Fallback do meta tagu (skrócony opis)
+        if not description:
+            desc_meta = soup.find('meta', property='og:description')
+            if desc_meta:
+                description = desc_meta.get('content')
         
         # Pobierz miniaturkę
         thumbnail = None

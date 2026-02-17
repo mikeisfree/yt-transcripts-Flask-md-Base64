@@ -6,7 +6,7 @@ Project inspired by [youtube-transcript-api](https://github.com/jdepoix/youtube-
 
 ## ✨ Features
 
-- 📝 **Rich metadata** - video titles, channel names, view counts, descriptions
+- 📝 **Rich metadata** - video titles, channel names, view counts, description
 - 🎯 **Smart naming** - files named using video titles
 - 🌐 **Multiple formats** - Markdown, JSON, SRT, VTT, plain text
 - 🚀 **n8n integration** - full API server for workflow automation
@@ -77,11 +77,13 @@ Skrypt do pobierania transkrypcji z YouTube oparty na bibliotece `youtube-transc
 #### Instalacja
 
 1. Zainstaluj wymagane zależności:
+
 ```bash
 pip install youtube-transcript-api
 ```
 
 2. Nadaj uprawnienia wykonawcze skryptowi:
+
 ```bash
 chmod +x youtube_transcript_downloader.py
 ```
@@ -89,6 +91,7 @@ chmod +x youtube_transcript_downloader.py
 #### Użycie
 
 **Podstawowe użycie:**
+
 ```bash
 # Pobierz transkrypcję po ID filmu
 python youtube_transcript_downloader.py ABC123xyz
@@ -98,6 +101,7 @@ python youtube_transcript_downloader.py "https://www.youtube.com/watch?v=ABC123x
 ```
 
 **Opcje językowe:**
+
 ```bash
 # Określ preferowane języki
 python youtube_transcript_downloader.py ABC123xyz --languages pl en de
@@ -107,6 +111,7 @@ python youtube_transcript_downloader.py ABC123xyz --translate de
 ```
 
 **Formaty wyjściowe:**
+
 ```bash
 # Zapisz w formacie JSON
 python youtube_transcript_downloader.py ABC123xyz --format json --output transcript.json
@@ -125,6 +130,7 @@ python youtube_transcript_downloader.py ABC123xyz --format text --output transcr
 ```
 
 **Inne opcje:**
+
 ```bash
 # Wyświetl dostępne transkrypcje
 python youtube_transcript_downloader.py ABC123xyz --list
@@ -142,37 +148,45 @@ python youtube_transcript_downloader.py ABC123xyz --exclude-manually-created
 #### Przykłady
 
 1. **Pobierz transkrypcję w formacie Markdown (domyślnie):**
+
 ```bash
 python youtube_transcript_downloader.py ABC123xyz
 ```
+
 Pliki zostaną zapisane jako `Transcripts/Tytuł Filmu.md` i `Transcripts/Tytuł Filmu.b64`
 
 2. **Pobierz transkrypcję bez kodowania base64:**
+
 ```bash
 python youtube_transcript_downloader.py ABC123xyz --no-base64
 ```
 
 3. **Pobierz polską transkrypcję i zapisz do pliku:**
+
 ```bash
 python youtube_transcript_downloader.py ABC123xyz --languages pl --output transcript.md
 ```
 
 4. **Pobierz transkrypcję w formacie SRT:**
+
 ```bash
 python youtube_transcript_downloader.py ABC123xyz --format srt --output subtitles.srt
 ```
 
 5. **Sprawdź dostępne języki transkrypcji:**
+
 ```bash
 python youtube_transcript_downloader.py ABC123xyz --list
 ```
 
 6. **Przetłumacz transkrypcję na niemiecki:**
+
 ```bash
 python youtube_transcript_downloader.py ABC123xyz --languages en --translate de
 ```
 
 7. **Pobierz transkrypcję z zachowaniem formatowania HTML:**
+
 ```bash
 python youtube_transcript_downloader.py ABC123xyz --preserve-formatting
 ```
@@ -204,6 +218,7 @@ yt-transcripts/
 #### Format Markdown
 
 Transkrypcje zapisane w formacie Markdown zawierają:
+
 - Nagłówek z informacjami o filmie (ID, język)
 - Znaczniki czasowe w formacie `[MM:SS]` lub `[HH:MM:SS]`
 - Czytelny podział na akapity
@@ -211,6 +226,7 @@ Transkrypcje zapisane w formacie Markdown zawierają:
 #### Base64 Encoding
 
 Dla każdego pliku `.md` tworzony jest dodatkowo plik `.b64` zawierający:
+
 - Zawartość transkrypcji zakodowaną w base64
 - Może być używany do bezpiecznego transferu danych
 - Przydatny w integracjach z systemami zewnętrznymi
@@ -231,11 +247,13 @@ The project includes a full API server for seamless integration with n8n workflo
 ### Quick Setup
 
 1. **Start the API server:**
+
 ```bash
 ./start_api.sh
 ```
 
 2. **Test the API:**
+
 ```bash
 curl -X POST http://localhost:5000/transcript \
   -H "Content-Type: application/json" \
@@ -244,12 +262,12 @@ curl -X POST http://localhost:5000/transcript \
 
 ### API Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/transcript` | POST | Main transcript download |
-| `/transcripts/list` | POST | List available languages |
-| `/metadata` | POST | Get video metadata only |
-| `/health` | GET | Health check |
+| Endpoint            | Method | Description              |
+| ------------------- | ------ | ------------------------ |
+| `/transcript`       | POST   | Main transcript download |
+| `/transcripts/list` | POST   | List available languages |
+| `/metadata`         | POST   | Get video metadata only  |
+| `/health`           | GET    | Health check             |
 
 ### Example API Request
 
@@ -321,19 +339,21 @@ curl -X POST http://localhost:5000/transcript \
 ### Sample n8n Workflows
 
 #### Workflow 1: Automated Transcript Collection
+
 ```
-Trigger (Schedule) → 
-Google Sheets (Get video IDs) → 
-HTTP Request (Our API) → 
-Set (Process data) → 
+Trigger (Schedule) →
+Google Sheets (Get video IDs) →
+HTTP Request (Our API) →
+Set (Process data) →
 Google Sheets (Save results)
 ```
 
 #### Workflow 2: Content Analysis
+
 ```
-Webhook (New video) → 
-HTTP Request (Get transcript) → 
-AI Service (Analyze) → 
+Webhook (New video) →
+HTTP Request (Get transcript) →
+AI Service (Analyze) →
 Slack (Send notification)
 ```
 
@@ -390,11 +410,11 @@ curl http://localhost:5000/health
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PORT` | 5000 | API server port |
-| `DEBUG` | false | Enable debug mode |
-| `OUTPUT_DIR` | Transcripts | Output directory |
+| Variable     | Default     | Description       |
+| ------------ | ----------- | ----------------- |
+| `PORT`       | 5000        | API server port   |
+| `DEBUG`      | false       | Enable debug mode |
+| `OUTPUT_DIR` | Transcripts | Output directory  |
 
 ---
 
@@ -417,6 +437,7 @@ This project is open source and available under the [MIT License](LICENSE).
 ## 📞 Support
 
 For issues and questions:
+
 - Create an issue on GitHub
 - Check the [N8N_INTEGRATION.md](N8N_INTEGRATION.md) for n8n-specific help
 

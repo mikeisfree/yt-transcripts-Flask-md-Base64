@@ -1,5 +1,8 @@
 bin/**
 /test/**
 /_pycache_/
+__pycache__/
 Transcripts/*
 venv/
+new_venv/
+.env

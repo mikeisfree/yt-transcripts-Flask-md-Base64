@@ -351,9 +351,10 @@ def list_available_transcripts(video_id: str) -> None:
             print(f"Język: {transcript.language} ({transcript.language_code})")
             print(f"Typ: {transcript_type}")
             print(f"Możliwe tłumaczenie: {translatable}")
-            if transcript.is_translatable:
+            if transcript.is_translatable and hasattr(transcript, 'translation_languages'):
                 languages = [lang["language_code"] for lang in transcript.translation_languages]
-                print(f"Dostępne tłumaczenia: {', '.join(languages[:5])}{'...' if len(languages) > 5 else ''}")
+                langs_preview = ", ".join(languages[:5])
+                print(f"Dostępne tłumaczenia: {langs_preview}{'...' if len(languages) > 5 else ''}")
             print("-" * 50)
             
     except Exception as e:
@@ -413,7 +414,7 @@ def encode_to_base64(content: str) -> str:
         return ""
 
 
-def save_transcript(transcript: str, output_file: str, format_type: str = "text", video_id: str = "", metadata: Dict[str, Any] = None, encode_base64: bool = True) -> None:
+def save_transcript(transcript: Any, output_file: str, format_type: str = "text", video_id: str = "", metadata: Optional[Dict[str, Any]] = None, encode_base64: bool = True) -> None:
     """Zapisz transkrypcję do pliku w wybranym formacie"""
     try:
         if format_type == "json":
@@ -476,6 +477,8 @@ def main():
                         help="Nie pobieraj metadanych filmu (tytuł, kanał, etc.)")
     parser.add_argument("--no-base64", action="store_true",
                         help="Nie twórz pliku base64 (domyślnie tworzy dla .md)")
+    parser.add_argument("--no-notes", action="store_true",
+                        help="Pomiń pytanie o generowanie notatek")
     
     args = parser.parse_args()
     
@@ -507,7 +510,8 @@ def main():
         sys.exit(1)
     
     if args.output:
-        save_transcript(transcript, args.output, args.format, video_id, metadata, not args.no_base64)
+        output_file = args.output
+        save_transcript(transcript, output_file, args.format, video_id, metadata, not args.no_base64)
     else:
         # Domyślnie zapisuj w folderze Transcripts z nazwą pliku zawierającą tytuł
         output_dir = "Transcripts"
@@ -521,6 +525,33 @@ def main():
             output_file = os.path.join(output_dir, f"{video_id}.{args.format}")
         
         save_transcript(transcript, output_file, args.format, video_id, metadata, not args.no_base64)
+    
+    # ── Generowanie notatek (tylko dla formatu md, interaktywnie) ──
+    if args.format == "md" and not args.no_notes:
+        try:
+            from notes_agent import interactive_notes_flow
+
+            # Odczytaj zapisaną transkrypcję
+            output_file = os.path.abspath(output_file)
+            if os.path.exists(output_file):
+                with open(output_file, 'r', encoding='utf-8') as f:
+                    transcript_content = f.read()
+                
+                # Dodatkowy check czy treść nie jest pusta
+                if transcript_content.strip():
+                    interactive_notes_flow(output_file, transcript_content)
+                else:
+                    print("⚠️  Plik transkrypcji jest pusty — pomijam notatki.")
+            else:
+                print(f"⚠️  Nie znaleziono pliku: {output_file}")
+                print("   Pomijam generowanie notatek.")
+        except ImportError as e:
+            print(f"⚠️  Błąd importu notes_agent: {e}")
+            print("   Upewnij się, że plik notes_agent.py jest w tym samym folderze.")
+        except Exception as e:
+            print(f"❌ Wystąpił błąd w module notatek: {e}")
+        except KeyboardInterrupt:
+            print("\n\nPrzerwano. Transkrypcja została zapisana.")
 
 
 if __name__ == "__main__":

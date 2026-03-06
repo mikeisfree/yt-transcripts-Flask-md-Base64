@@ -14,7 +14,10 @@ Project inspired by [youtube-transcript-api](https://github.com/jdepoix/youtube-
 - 🌍 **Multi-language** - support for multiple transcript languages
 - 🔄 **Translation** - automatic transcript translation
 - 📁 **Auto-organization** - automatic file organization in Transcripts/ folder
-- 🔐 **Base64 encoding** - automatic base64 encoding for .md files
+- 🔐 **Base64 encoding** - automatyczne kodowanie base64 dla plików .md
+- 🤖 **AI Notes Agent** - automatyczne generowanie profesjonalnych notatek (Gemini AI)
+- 📝 **Style notatek** - wybór między stylem ciągłym a punktowanym
+- ✅ **Checklisty** - generowanie listy zadań i tematów do zapamiętania
 
 ## 📋 Prerequisites
 
@@ -27,13 +30,29 @@ Project inspired by [youtube-transcript-api](https://github.com/jdepoix/youtube-
 ### Option 1: CLI Usage
 
 ```bash
+# Clone repo
+git clone https://github.com/mikeisfree/yt-transcripts-Flask-md-Base64.git
+
+# Go to repo
+cd yt-transcripts-Flask-md-Base64
+
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+# Linux/Mac:
+source venv/bin/activate
+
+# MS Windows:
+.\venv\Scripts\activate
+
 # Install dependencies
 pip install -r requirements.txt
 
 # Download transcript (uses video title as filename)
 python youtube_transcript_downloader.py ABC123xyz
 
-# Specify language and format
+# (OPTIONAL) Specify language and format
 python youtube_transcript_downloader.py ABC123xyz --languages pl --format json
 ```
 
@@ -191,18 +210,34 @@ python youtube_transcript_downloader.py ABC123xyz --languages en --translate de
 python youtube_transcript_downloader.py ABC123xyz --preserve-formatting
 ```
 
-#### Nowe opcje base64
+---
 
-- `--no-base64` - wyłącza tworzenie pliku .b64
-- Domyślnie dla formatu .md tworzony jest plik .b64
-- Plik .b64 zawiera pełną zawartość transkrypcji zakodowaną w base64
-- Można używać w integracjach z systemami zewnętrznymi
+## 🤖 AI Notes Agent
 
-#### Wymagania
+Nowa funkcjonalność pozwala na automatyczne generowanie inteligentnych notatek z pobranej transkrypcji przy użyciu **Google Gemini AI**.
 
-- Python 3.6+
-- youtube-transcript-api
-- requests (automatycznie instalowana z youtube-transcript-api)
+### Funkcje Agenta:
+- **Dwa style notatek**:
+  - `(a) Ciągła`: Spójny opis z podziałem na sekcje tematyczne i wnioskami.
+  - `(b) Punktowana`: Zwięzłe opisy sekcji uzupełnione listami punktowanymi.
+- **Checklista**: Możliwość dodania na końcu sekcji z zadaniami do wykonania i tematami do zapamiętania.
+- **Wsparcie dla języków**: Agent tworzy notatki w języku, w którym pobrana została transkrypcja.
+- **Inteligentne formatowanie**: Markdown z nagłówkami, pogrubieniami i cytatami.
+
+### Użycie (CLI):
+Po pobraniu transkrypcji skrypt zapyta interaktywnie:
+1. Czy utworzyć notatki? (y/n)
+2. Wybór typu (Ciągła/Punktowana)
+3. Czy dodać checklistę? (y/n)
+
+Notatki zostaną zapisane w pliku `{Tytuł Filmu}-notes.md` w folderze `Transcripts/`.
+
+### Konfiguracja API Gemini:
+- Skrypt wymaga klucza API Gemini. Możesz go uzyskać bezpłatnie na: [Google AI Studio](https://aistudio.google.com/apikey).
+- Przy pierwszym uruchomieniu skrypt poprosi o podanie klucza i zapisze go w pliku `.env`.
+- Możesz pominąć powiadomienie o notatkach używając flagi `--no-notes`.
+
+---
 
 #### Struktura plików
 

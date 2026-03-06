@@ -33,6 +33,6 @@ pip install -r requirements.txt
 
 # Uruchom API
 echo "Start API na porcie 5000..."
-export FLASK_APP= api_server.py
+export FLASK_APP=api_server.py
 export FLASK_ENV=production
 python3 api_server.py
